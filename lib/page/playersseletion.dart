@@ -5,6 +5,9 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mobiledev/page/TeamPage.dart';
+import 'package:mobiledev/page/TeamDetailPage.dart';
+
+
 
 class Pokemon {
   final int id;
@@ -311,6 +314,13 @@ class PlayersSelection extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("Team saved successfully!")),
               );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.remove_red_eye),
+            tooltip: "View Saved Team",
+            onPressed: () {
+              Get.to(() => TeamDetailPage()); // เปิดหน้า TeamPage
             },
           ),
           IconButton(

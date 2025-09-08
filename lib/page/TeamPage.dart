@@ -1,9 +1,7 @@
-// TeamPage.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobiledev/page/playersseletion.dart';
 import 'package:mobiledev/page/TeamDetailPage.dart';
-
 
 class TeamPage extends StatelessWidget {
   final controller = Get.find<PokemonController>();
@@ -21,30 +19,35 @@ class TeamPage extends StatelessWidget {
           // ช่องแก้ไขชื่อทีม
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: "Team Name",
-                border: OutlineInputBorder(),
-              ),
-            ),
+            child: Obx(() {
+              nameController.text = controller.teamName.value;
+              return TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: "Team Name",
+                  border: OutlineInputBorder(),
+                ),
+                onSubmitted: (val) => controller.saveTeamName(val),
+              );
+            }),
           ),
 
           const SizedBox(height: 10),
           const Text(
-            "Pokémon ที่เลือก",
+            "Pokémon ทั้งหมด (กดเลือก/ลบได้)",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
 
-          // แสดง Pokémon ที่เลือก
+          // Grid แสดง Pokémon ทั้งหมด
           Expanded(
             child: Obx(() {
-              final selectedPokemons = controller.pokemons
-                  .where((p) => controller.selected.contains(p.id))
-                  .toList();
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-              if (selectedPokemons.isEmpty) {
-                return const Center(child: Text("ยังไม่ได้เลือก Pokémon"));
+              final list = controller.filteredPokemons;
+              if (list.isEmpty) {
+                return const Center(child: Text("No Pokémon found"));
               }
 
               return GridView.builder(
@@ -55,38 +58,45 @@ class TeamPage extends StatelessWidget {
                   crossAxisSpacing: 8,
                   childAspectRatio: 0.8,
                 ),
-                itemCount: selectedPokemons.length,
+                itemCount: list.length,
                 itemBuilder: (context, index) {
-                  final p = selectedPokemons[index];
-                  return GestureDetector(
-                    onTap: () {
-                      // ถ้ากดที่ตัวนี้ ให้ toggle (เอาออก)
-                      controller.toggle(p, context);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blue, width: 2),
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.blue.shade50,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircleAvatar(
-                            radius: 35,
-                            backgroundImage: NetworkImage(p.imageUrl),
+                  final p = list[index];
+
+                  return Obx(() {
+                    final isSelected = controller.selected.contains(p.id);
+
+                    return GestureDetector(
+                      onTap: () => controller.toggle(p, context),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isSelected ? Colors.blue : Colors.grey,
+                            width: 2,
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            p.name,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          const Icon(Icons.close, color: Colors.red),
-                        ],
+                          borderRadius: BorderRadius.circular(12),
+                          color: isSelected ? Colors.blue.shade50 : Colors.white,
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 35,
+                              backgroundImage: NetworkImage(p.imageUrl),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              p.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            if (isSelected)
+                              const Icon(Icons.check_circle, color: Colors.blue),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  });
                 },
               );
             }),
@@ -95,14 +105,20 @@ class TeamPage extends StatelessWidget {
           // ปุ่มบันทึก
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-  onPressed: () {
-    controller.saveTeamName(nameController.text);
-    controller.saveTeam(); // บันทึกทีมด้วย
-    Get.to(() => TeamDetailPage()); // ไปหน้าโชว์ทีม
-  },
-  child: const Text("Save"),
-),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      controller.saveTeamName(nameController.text);
+                      controller.saveTeam();
+                      Get.to(() => TeamDetailPage()); // ไปหน้าโชว์ทีม
+                    },
+                    child: const Text("Save & View Team"),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
