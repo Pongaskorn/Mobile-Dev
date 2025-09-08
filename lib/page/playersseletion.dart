@@ -1,11 +1,10 @@
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
-
+import 'package:mobiledev/page/TeamPage.dart';
 
 class Pokemon {
   final int id;
@@ -22,7 +21,6 @@ class Pokemon {
 
   Map<String, dynamic> toJson() => {"id": id, "name": name};
 }
-
 
 class PokemonController extends GetxController {
   final pokemons = <Pokemon>[].obs;
@@ -80,6 +78,7 @@ class PokemonController extends GetxController {
 
   void reset() {
     selected.clear();
+    teamName.value = "My Team"; // รีเซ็ตชื่อทีมด้วย
     saveTeam();
   }
 
@@ -195,21 +194,19 @@ class SelectedPokemonsRow extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
 
                   child: Column(
-                    mainAxisSize:
-                        MainAxisSize.min, 
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Expanded(
                         child: Hero(
                           tag: "pokemon_${p.id}",
                           child: CircleAvatar(
-                            radius:20,                
+                            radius: 20,
                             backgroundImage: NetworkImage(p.imageUrl),
                           ),
                         ),
                       ),
                       const SizedBox(height: 6),
                       Flexible(
-                        
                         child: Text(
                           p.name,
                           overflow: TextOverflow.ellipsis,
@@ -261,7 +258,7 @@ class PokemonGridItem extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOutBack,
               child: Hero(
-                tag: "pokemon_${p.id}", 
+                tag: "pokemon_${p.id}",
                 child: CircleAvatar(
                   radius: 40,
                   backgroundImage: NetworkImage(p.imageUrl),
@@ -292,7 +289,7 @@ class PokemonGridItem extends StatelessWidget {
   }
 }
 
-///  Main  
+///  Main
 class PlayersSelection extends StatelessWidget {
   const PlayersSelection({super.key});
 
@@ -307,9 +304,45 @@ class PlayersSelection extends StatelessWidget {
         title: const Text('Players Selection'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.save),
+            tooltip: "Save Team",
+            onPressed: () {
+              controller.saveTeam();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Team saved successfully!")),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: "Reset Team",
-            onPressed: controller.reset,
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text("ยืนยัน"),
+                  content: const Text(
+                    "คุณต้องการรีเซ็ตทีมและล้างชื่อทั้งหมดหรือไม่?",
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text("ยกเลิก"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        controller.reset();
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("ทีมถูกรีเซ็ตแล้ว")),
+                        );
+                      },
+                      child: const Text("ตกลง"),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -322,13 +355,24 @@ class PlayersSelection extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               color: Colors.blue.shade100,
-              child: Text(
-                "Team: ${controller.teamName.value}",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Team: ${controller.teamName.value}",
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () {
+                      Get.to(() => TeamPage());
+                    },
+                  ),
+                ],
               ),
             ),
           ),
