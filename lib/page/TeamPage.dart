@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mobiledev/page/playersseletion.dart';
+import 'package:mobiledev/page/TeamDetailPage.dart';
+
 
 class TeamPage extends StatelessWidget {
   final controller = Get.find<PokemonController>();
@@ -94,13 +96,13 @@ class TeamPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
-              onPressed: () {
-                controller.saveTeamName(nameController.text);
-                controller.saveTeam(); // บันทึกทีมด้วย
-                Get.back();
-              },
-              child: const Text("Save"),
-            ),
+  onPressed: () {
+    controller.saveTeamName(nameController.text);
+    controller.saveTeam(); // บันทึกทีมด้วย
+    Get.to(() => TeamDetailPage()); // ไปหน้าโชว์ทีม
+  },
+  child: const Text("Save"),
+),
           ),
         ],
       ),
